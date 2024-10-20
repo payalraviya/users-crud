@@ -1,11 +1,15 @@
 <template>
   <div class="p-6">
-    <h1 class="text-3xl font-bold mb-6">User List</h1>
+    <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">User List</h1>
+    <button @click="logout" class="bg-red-500 text-white px-4 py-2 rounded">
+      Logout
+    </button>
+  </div>
     <div class="flex items-center justify-between mb-5">
       <div class="relative w-1/2">
         <input
           v-model="searchQuery"
-          @input="debounceSearch"
           placeholder="Search by name or email"
           class="border border-gray-300 p-2 rounded pl-10 pr-10 w-full"
         />
@@ -162,10 +166,11 @@ import { computed, onMounted } from "vue";
 import { useStore } from "vuex";
 import type { User } from "../store/types";
 
-const store = useStore();
 
+const store = useStore();
 const searchQuery = ref("");
 const searchTimeout = ref(null);
+const router = useRouter()
 
 const users = computed(() => store.getters.getUsers);
 const user = computed(() => store.getters.getUser);
@@ -199,7 +204,20 @@ const openModal = () => store.dispatch("openModal");
 const closeModal = () => store.dispatch("closeModal");
 const editUser = (user: any) => store.dispatch("editUser", user);
 
+function logout(){
+  router.push('/login')
+  localStorage.removeItem('token'); 
+  (useNuxtApp().$toast as { success: (msg: string) => void }).success('Logged out successfully');
+
+}
+
 onMounted(() => {
+  const token = localStorage.getItem("token"); 
+  if (token) {
+    store.commit("SET_TOKEN", token);
+  } else {
+    router.push("/register");
+  }
   fetchUsers();
 });
 </script>

@@ -1,7 +1,10 @@
 import prisma from '../../../prisma/prisma';
+import authMiddleware from '../../middleware/auth';
 
 export default defineEventHandler(async (event) => {
-  const id = event.context.params?.id;  
+  await authMiddleware(event);  // Check auth
+
+  const id = event.context.params?.id;
   const body = await readBody(event);
 
   if (!body.name || typeof body.name !== 'string' || body.name.length > 100) {
@@ -25,7 +28,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const userId = parseInt(id, 10); 
+  const userId = parseInt(id, 10);
   if (isNaN(userId)) {
     throw createError({
       statusCode: 400,
@@ -35,7 +38,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const updatedUser = await prisma.user.update({
-      where: { id: userId }, 
+      where: { id: userId },
       data: {
         name: body.name,
         email: body.email,
@@ -43,7 +46,6 @@ export default defineEventHandler(async (event) => {
     });
 
     return updatedUser;
-
   } catch (error) {
     const prismaError = error as { code?: string; meta?: { target?: string[] } };
 
@@ -54,7 +56,7 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    if (prismaError.code === 'P2025') {  
+    if (prismaError.code === 'P2025') {
       throw createError({
         statusCode: 404,
         statusMessage: "User not found.",

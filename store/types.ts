@@ -19,4 +19,6 @@ export interface State {
     apiError: string;
     userId: number | null;
     validationErrors: ValidationErrors;
+    isAuthenticated: boolean,
+    token:string
 }

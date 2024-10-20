@@ -1,6 +1,9 @@
-import prisma from '../../../prisma/prisma'
+import prisma from '../../../prisma/prisma';
+import authMiddleware from '../../middleware/auth';
 
 export default defineEventHandler(async (event) => {
+  await authMiddleware(event);  // Check auth
+
   const body = await readBody(event);
 
   if (!body.name || typeof body.name !== 'string' || body.name.length > 100) {
