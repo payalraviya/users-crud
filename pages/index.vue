@@ -1,11 +1,27 @@
 <template>
   <div class="p-6">
     <h1 class="text-3xl font-bold mb-6">User List</h1>
-
-    <div>
+    <div class="flex items-center justify-between mb-5">
+      <div class="relative w-1/2">
+        <input
+          v-model="searchQuery"
+          @input="debounceSearch"
+          placeholder="Search by name or email"
+          class="border border-gray-300 p-2 rounded pl-10 pr-10 w-full"
+        />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 512 512"
+          class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+        >
+          <path
+            d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"
+          />
+        </svg>
+      </div>
       <button
         @click="openModal"
-        class="bg-blue-500 text-white px-4 py-2 rounded mb-6"
+        class="bg-blue-500 text-white px-4 py-2 rounded"
       >
         Create New User
       </button>
@@ -42,13 +58,17 @@
           </tr>
         </thead>
         <tbody>
-          <template v-if="users.length === 0">
+          <template v-if="filteredUsers.length === 0">
             <tr>
               <td colspan="5" class="text-center py-4">No records found</td>
             </tr>
           </template>
           <template v-else>
-            <tr v-for="(user, index) in users" :key="user.id" class="border-b">
+            <tr
+              v-for="(user, index) in filteredUsers"
+              :key="user.id"
+              class="border-b"
+            >
               <td class="py-2 px-4 border-r">{{ index + 1 }}</td>
               <td class="py-2 px-4 border-r">{{ user.name }}</td>
               <td class="py-2 px-4 border-r">{{ user.email }}</td>
@@ -81,7 +101,7 @@
     >
       <div class="bg-white p-6 rounded shadow-lg w-full max-w-md">
         <h2 class="text-xl font-bold mb-4">
-          {{ editMode ? 'Edit User' : 'Create New User' }}
+          {{ editMode ? "Edit User" : "Create New User" }}
         </h2>
 
         <form @submit.prevent="editMode ? updateUser() : createUser()">
@@ -120,8 +140,11 @@
             >
               Cancel
             </button>
-            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">
-              {{ editMode ? 'Update' : 'Create' }}
+            <button
+              type="submit"
+              class="bg-blue-500 text-white px-4 py-2 rounded"
+            >
+              {{ editMode ? "Update" : "Create" }}
             </button>
           </div>
 
@@ -135,10 +158,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
-import { useStore } from 'vuex';
+import { computed, onMounted } from "vue";
+import { useStore } from "vuex";
+import type { User } from "../store/types";
 
 const store = useStore();
+
+const searchQuery = ref("");
+const searchTimeout = ref(null);
 
 const users = computed(() => store.getters.getUsers);
 const user = computed(() => store.getters.getUser);
@@ -149,18 +176,28 @@ const validationErrors = computed(() => store.getters.getValidationErrors);
 const apiError = computed(() => store.getters.getApiError);
 const formatCreatedAt = store.getters.formatCreatedAt;
 
-const fetchUsers = () => store.dispatch('fetchUsers');
+const filteredUsers = computed(() => {
+  if (!searchQuery.value) return users.value;
+  const queryLower = searchQuery.value.toLowerCase();
+  return users.value.filter((user: User) => {
+    const nameMatch = user.name.toLowerCase().includes(queryLower);
+    const emailMatch = user.email.toLowerCase().includes(queryLower);
+    return nameMatch || emailMatch;
+  });
+});
+
+const fetchUsers = () => store.dispatch("fetchUsers");
 const createUser = () => {
-  store.dispatch('createUser', user.value);
+  store.dispatch("createUser", user.value);
 };
 
 const updateUser = () => {
-  store.dispatch('updateUser', user.value);
+  store.dispatch("updateUser", user.value);
 };
-const deleteUser = (id: number) => store.dispatch('deleteUser', id);
-const openModal = () => store.dispatch('openModal');
-const closeModal = () => store.dispatch('closeModal');
-const editUser = (user:any) => store.dispatch('editUser', user);
+const deleteUser = (id: number) => store.dispatch("deleteUser", id);
+const openModal = () => store.dispatch("openModal");
+const closeModal = () => store.dispatch("closeModal");
+const editUser = (user: any) => store.dispatch("editUser", user);
 
 onMounted(() => {
   fetchUsers();

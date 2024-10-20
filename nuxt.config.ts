@@ -4,6 +4,11 @@ export default defineNuxtConfig({
   plugins: [
     '~/plugins/vuex.ts', // Ensure Vuex is registered as a plugin
   ],
+  app: {
+    head: {
+      title: "Users Crud",
+    },
+  },
   tailwindcss: {
     cssPath: '~/assets/css/tailwind.css',
     configPath: 'tailwind.config.js',
