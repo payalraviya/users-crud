@@ -27,7 +27,8 @@ export default defineEventHandler(async (event) => {
 
     return newUser;
   } catch (error) {
-    if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+    const prismaError = error as { code?: string; meta?: { target?: string[] } };
+    if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('email')) {
       throw createError({
         statusCode: 409,
         statusMessage: "Email is already in use.",
