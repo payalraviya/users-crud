@@ -30,7 +30,6 @@
       </svg>
     </div>
 
-    <!-- User Table -->
     <div class="overflow-x-auto" v-else>
       <table class="min-w-full bg-white border border-gray-300">
         <thead>
@@ -142,7 +141,7 @@
   </div>
 </template>
   
-  <script setup lang="ts">
+<script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { formatDistanceToNow } from "date-fns";
 import { toast as ToastType } from "vue3-toastify";
@@ -207,13 +206,11 @@ const validateUser = (): boolean => {
   validationErrors.name = "";
   validationErrors.email = "";
 
-  // Validate name length
   if (state.user.name.length < 3 || state.user.name.length > 100) {
-    validationErrors.name = "Name must be between 3 and 50 characters.";
+    validationErrors.name = "Name must be between 3 and 100 characters.";
     isValid = false;
   }
 
-  // Validate email format
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailPattern.test(state.user.email)) {
     validationErrors.email = "Please enter a valid email address.";

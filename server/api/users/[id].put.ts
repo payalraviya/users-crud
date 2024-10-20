@@ -4,7 +4,6 @@ export default defineEventHandler(async (event) => {
   const id = event.context.params?.id;  
   const body = await readBody(event);
 
-  // Validate name
   if (!body.name || typeof body.name !== 'string' || body.name.length > 100) {
     throw createError({
       statusCode: 400,
@@ -12,7 +11,6 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Validate email
   if (!body.email || typeof body.email !== 'string') {
     throw createError({
       statusCode: 400,
@@ -20,7 +18,6 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Check if id is defined and is a string
   if (typeof id !== 'string') {
     throw createError({
       statusCode: 400,
@@ -28,8 +25,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Convert id to a number
-  const userId = parseInt(id, 10); // Convert id to an integer
+  const userId = parseInt(id, 10); 
   if (isNaN(userId)) {
     throw createError({
       statusCode: 400,
@@ -38,9 +34,8 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Update user with the converted userId
     const updatedUser = await prisma.user.update({
-      where: { id: userId },  // Use the integer userId here
+      where: { id: userId }, 
       data: {
         name: body.name,
         email: body.email,
@@ -52,7 +47,6 @@ export default defineEventHandler(async (event) => {
   } catch (error) {
     const prismaError = error as { code?: string; meta?: { target?: string[] } };
 
-    // Handle unique constraint violation for email
     if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('email')) {
       throw createError({
         statusCode: 409,
@@ -60,7 +54,6 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Handle user not found error
     if (prismaError.code === 'P2025') {  
       throw createError({
         statusCode: 404,
@@ -68,7 +61,6 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Handle generic error
     throw createError({
       statusCode: 500,
       statusMessage: "An error occurred while updating the user.",
