@@ -1,30 +1,46 @@
 <template>
     <div class="p-6">
       <h1 class="text-3xl font-bold mb-6">User List</h1>
-      
+  
+      <!-- Create User Button -->
       <button 
         @click="openModal()" 
         class="bg-blue-500 text-white px-4 py-2 rounded mb-6">
         Create New User
       </button>
   
-      <ul v-if="users" class="space-y-4">
-        <li v-for="user in users" :key="user.id" class="flex justify-between items-center">
-          <span><strong>{{ user.name }}</strong> - {{ user.email }}</span>
-          <div>
-            <button 
-              @click="editUser(user)" 
-              class="bg-yellow-500 text-white px-4 py-2 rounded mr-2">
-              Edit
-            </button>
-            <button 
-              @click="deleteUser(user.id)" 
-              class="bg-red-500 text-white px-4 py-2 rounded">
-              Delete
-            </button>
-          </div>
-        </li>
-      </ul>
+      <!-- User Table -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-300">
+          <thead>
+            <tr class="bg-gray-100 border-b">
+              <th class="text-left py-2 px-4 border-r">ID</th>
+              <th class="text-left py-2 px-4 border-r">Name</th>
+              <th class="text-left py-2 px-4 border-r">Email</th>
+              <th class="text-left py-2 px-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="user in users" :key="user.id" class="border-b">
+              <td class="py-2 px-4 border-r">{{ user.id }}</td>
+              <td class="py-2 px-4 border-r">{{ user.name }}</td>
+              <td class="py-2 px-4 border-r">{{ user.email }}</td>
+              <td class="py-2 px-4">
+                <button 
+                  @click="editUser(user)" 
+                  class="bg-yellow-500 text-white px-4 py-2 rounded mr-2">
+                  Edit
+                </button>
+                <button 
+                  @click="deleteUser(user.id)" 
+                  class="bg-red-500 text-white px-4 py-2 rounded">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
   
       <!-- Modal for Create/Edit User -->
       <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
