@@ -2,16 +2,16 @@
   <div class="p-6">
     <h1 class="text-3xl font-bold mb-6">User List</h1>
 
-    <div class="">
+    <div>
       <button
-        @click="openModal()"
+        @click="openModal"
         class="bg-blue-500 text-white px-4 py-2 rounded mb-6"
       >
         Create New User
       </button>
     </div>
 
-    <div v-if="state.isLoading" class="text-center mb-4">
+    <div v-if="isLoading" class="text-center mb-4">
       <span class="text-gray-500">Loading users...</span>
       <svg class="animate-spin h-5 w-5 inline-block" viewBox="0 0 24 24">
         <circle
@@ -42,17 +42,13 @@
           </tr>
         </thead>
         <tbody>
-          <template v-if="state.users.length === 0">
+          <template v-if="users.length === 0">
             <tr>
               <td colspan="5" class="text-center py-4">No records found</td>
             </tr>
           </template>
           <template v-else>
-            <tr
-              v-for="(user, index) in state.users"
-              :key="user.id"
-              class="border-b"
-            >
+            <tr v-for="(user, index) in users" :key="user.id" class="border-b">
               <td class="py-2 px-4 border-r">{{ index + 1 }}</td>
               <td class="py-2 px-4 border-r">{{ user.name }}</td>
               <td class="py-2 px-4 border-r">{{ user.email }}</td>
@@ -80,19 +76,19 @@
     </div>
 
     <div
-      v-if="state.isModalOpen"
+      v-if="isModalOpen"
       class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
     >
       <div class="bg-white p-6 rounded shadow-lg w-full max-w-md">
         <h2 class="text-xl font-bold mb-4">
-          {{ state.editMode ? "Edit User" : "Create New User" }}
+          {{ editMode ? 'Edit User' : 'Create New User' }}
         </h2>
 
-        <form @submit.prevent="state.editMode ? updateUser() : createUser()">
+        <form @submit.prevent="editMode ? updateUser() : createUser()">
           <div class="mb-4">
             <label class="block mb-2">Name</label>
             <input
-              v-model="state.user.name"
+              v-model="user.name"
               class="border border-gray-300 p-2 w-full rounded"
               placeholder="Name"
               required
@@ -105,7 +101,7 @@
           <div class="mb-4">
             <label class="block mb-2">Email</label>
             <input
-              v-model="state.user.email"
+              v-model="user.email"
               class="border border-gray-300 p-2 w-full rounded"
               placeholder="Email"
               type="email"
@@ -119,16 +115,13 @@
           <div class="flex justify-end">
             <button
               type="button"
-              @click="closeModal()"
+              @click="closeModal"
               class="bg-gray-500 text-white px-4 py-2 rounded mr-2"
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              class="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-              {{ state.editMode ? "Update" : "Create" }}
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">
+              {{ editMode ? 'Update' : 'Create' }}
             </button>
           </div>
 
@@ -140,159 +133,36 @@
     </div>
   </div>
 </template>
-  
+
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
-import { formatDistanceToNow } from "date-fns";
-import { toast as ToastType } from "vue3-toastify";
+import { computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  createdAt: string;
-}
+const store = useStore();
 
-interface State {
-  users: User[];
-  user: User;
-  editMode: boolean;
-  isModalOpen: boolean;
-  userId: number | null;
-  isLoading: boolean;
-}
+const users = computed(() => store.getters.getUsers);
+const user = computed(() => store.getters.getUser);
+const isLoading = computed(() => store.getters.isLoading);
+const isModalOpen = computed(() => store.getters.isModalOpen);
+const editMode = computed(() => store.getters.isEditMode);
+const validationErrors = computed(() => store.getters.getValidationErrors);
+const apiError = computed(() => store.getters.getApiError);
+const formatCreatedAt = store.getters.formatCreatedAt;
 
-const state = reactive<State>({
-  users: [],
-  user: {
-    id: 0,
-    name: "",
-    email: "",
-    createdAt: "",
-  },
-  editMode: false,
-  isModalOpen: false,
-  userId: null,
-  isLoading: true,
-});
-
-const validationErrors = reactive({
-  name: "",
-  email: "",
-});
-
-const getToast = (): typeof ToastType =>
-  useNuxtApp().$toast as typeof ToastType;
-
-const toast = getToast();
-
-const apiError = ref<string>("");
-
-const fetchUsers = async () => {
-  state.isLoading = true;
-  try {
-    const response = await fetch("/api/users");
-    if (!response.ok) throw new Error("Network response was not ok");
-    state.users = await response.json();
-  } catch (error: any) {
-    toast.error("Fail to fetch users", error);
-  } finally {
-    state.isLoading = false;
-  }
+const fetchUsers = () => store.dispatch('fetchUsers');
+const createUser = () => {
+  store.dispatch('createUser', user.value);
 };
 
-const validateUser = (): boolean => {
-  let isValid = true;
-  validationErrors.name = "";
-  validationErrors.email = "";
-
-  if (state.user.name.length < 3 || state.user.name.length > 100) {
-    validationErrors.name = "Name must be between 3 and 100 characters.";
-    isValid = false;
-  }
-
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailPattern.test(state.user.email)) {
-    validationErrors.email = "Please enter a valid email address.";
-    isValid = false;
-  }
-
-  return isValid;
+const updateUser = () => {
+  store.dispatch('updateUser', user.value);
 };
+const deleteUser = (id: number) => store.dispatch('deleteUser', id);
+const openModal = () => store.dispatch('openModal');
+const closeModal = () => store.dispatch('closeModal');
+const editUser = (user) => store.dispatch('editUser', user);
 
-const openModal = () => {
-  state.user = { id: 0, name: "", email: "", createdAt: "" };
-  state.editMode = false;
-  state.isModalOpen = true;
-  apiError.value = "";
-};
-
-const closeModal = () => {
-  state.isModalOpen = false;
-  validationErrors.name = "";
-  validationErrors.email = "";
-  apiError.value = "";
-};
-
-const formatCreatedAt = (dateString: string): string => {
-  return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-};
-
-const createUser = async () => {
-  if (!validateUser()) return;
-
-  try {
-    await $fetch("/api/users", {
-      method: "POST",
-      body: { name: state.user.name, email: state.user.email },
-    });
-    closeModal();
-    toast.success("User added to list successfully");
-    await fetchUsers();
-  } catch (error: any) {
-    apiError.value =
-      error.message || "An error occurred while creating the user.";
-  }
-};
-
-const editUser = (selectedUser: User) => {
-  state.user = { ...selectedUser };
-  state.userId = selectedUser.id;
-  state.editMode = true;
-  state.isModalOpen = true;
-  apiError.value = "";
-};
-
-const updateUser = async () => {
-  if (!validateUser()) return;
-
-  try {
-    await $fetch(`/api/users/${state.userId}`, {
-      method: "PUT",
-      body: { name: state.user.name, email: state.user.email },
-    });
-    closeModal();
-    toast.success("User updated successfully");
-    await fetchUsers();
-  } catch (error: any) {
-    apiError.value =
-      error.message || "An error occurred while updating the user.";
-  }
-};
-
-const deleteUser = async (id: number) => {
-  try {
-    await $fetch(`/api/users/${id}`, { method: "DELETE" });
-    toast.success("User deleted successfully");
-    await fetchUsers();
-  } catch (error: any) {
-    apiError.value =
-      error.message || "An error occurred while deleting the user.";
-  }
-};
-
-onMounted(async () => {
-  await fetchUsers();
+onMounted(() => {
+  fetchUsers();
 });
 </script>
-  
