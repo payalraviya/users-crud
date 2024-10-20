@@ -160,7 +160,7 @@ const updateUser = () => {
 const deleteUser = (id: number) => store.dispatch('deleteUser', id);
 const openModal = () => store.dispatch('openModal');
 const closeModal = () => store.dispatch('closeModal');
-const editUser = (user) => store.dispatch('editUser', user);
+const editUser = (user:any) => store.dispatch('editUser', user);
 
 onMounted(() => {
   fetchUsers();
