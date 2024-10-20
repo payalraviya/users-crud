@@ -36,7 +36,7 @@
         <table class="min-w-full bg-white border border-gray-300">
           <thead>
             <tr class="bg-gray-100 border-b">
-              <th class="text-left py-2 px-4 border-r">ID</th>
+              <th class="text-left py-2 px-4 border-r">Sr. No</th>
               <th class="text-left py-2 px-4 border-r">Name</th>
               <th class="text-left py-2 px-4 border-r">Email</th>
               <th class="text-left py-2 px-4 border-r">Created</th>
@@ -44,8 +44,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="user in state.users" :key="user.id" class="border-b">
-              <td class="py-2 px-4 border-r">{{ user.id }}</td>
+            <tr v-for="(user,index) in state.users" :key="user.id" class="border-b">
+              <td class="py-2 px-4 border-r">{{ index+1 }}</td>
               <td class="py-2 px-4 border-r">{{ user.name }}</td>
               <td class="py-2 px-4 border-r">{{ user.email }}</td>
               <td class="py-2 px-4 border-r">
@@ -133,131 +133,157 @@
       </div>
     </div>
   </template>
-   
-   <script setup lang="ts">
-   import { ref, reactive, onMounted } from "vue";
-   import { formatDistanceToNow } from "date-fns";
-   
-   const state = reactive({
-     users: [],
-     user: {
-       name: "",
-       email: "",
-     },
-     editMode: false,
-     isModalOpen: false,
-     userId: null,
-     isLoading: true,
-   });
-   
-   const validationErrors = reactive({
-     name: "",
-     email: "",
-   });
-   
-   const apiError = ref("");
-   
-   const fetchUsers = async () => {
-     state.isLoading = true;
-     try {
-       const response = await fetch("/api/users");
-       if (!response.ok) throw new Error("Network response was not ok");
-       state.users = await response.json();
-     } catch (error) {
-       console.error("Failed to fetch users:", error);
-     } finally {
-       state.isLoading = false;
-     }
-   };
-   
-   const validateUser = () => {
-     let isValid = true;
-     validationErrors.name = "";
-     validationErrors.email = "";
-     
-     // Validate name length
-     if (state.user.name.length < 3 || state.user.name.length > 50) {
-       validationErrors.name = "Name must be between 3 and 50 characters.";
-       isValid = false;
-     }
-   
-     // Validate email format
-     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-     if (!emailPattern.test(state.user.email)) {
-       validationErrors.email = "Please enter a valid email address.";
-       isValid = false;
-     }
-   
-     return isValid;
-   };
-   
-   const openModal = () => {
-     state.user = { name: "", email: "" };
-     state.editMode = false;
-     state.isModalOpen = true;
-     apiError.value = ""; // Reset API error
-   };
-   
-   const closeModal = () => {
-     state.isModalOpen = false;
-     validationErrors.name = "";
-     validationErrors.email = "";
-     apiError.value = ""; // Reset API error
-   };
-   
-   const formatCreatedAt = (dateString) => {
-     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-   };
-   
-   const createUser = async () => {
-     if (!validateUser()) return; // Perform validation before sending
-   
-     try {
-       await $fetch("/api/users", {
-         method: "POST",
-         body: { name: state.user.name, email: state.user.email },
-       });
-       closeModal();
-       await fetchUsers();
-     } catch (error) {
-       apiError.value = error.message || "An error occurred while creating the user.";
-     }
-   };
-   
-   const editUser = (selectedUser) => {
-     state.user = { name: selectedUser.name, email: selectedUser.email };
-     state.userId = selectedUser.id;
-     state.editMode = true;
-     state.isModalOpen = true;
-     apiError.value = ""; // Reset API error
-   };
-   
-   const updateUser = async () => {
-     if (!validateUser()) return; // Perform validation before sending
-   
-     try {
-       await $fetch(`/api/users/${state.userId}`, {
-         method: "PUT",
-         body: { name: state.user.name, email: state.user.email },
-       });
-       closeModal();
-       await fetchUsers();
-     } catch (error) {
-       apiError.value = error.message || "An error occurred while updating the user.";
-     }
-   };
-   
-   const deleteUser = async (id) => {
-     try {
-       await $fetch(`/api/users/${id}`, { method: "DELETE" });
-       await fetchUsers();
-     } catch (error) {
-       apiError.value = error.message || "An error occurred while deleting the user.";
-     }
-   };
-   
-   onMounted(async () => {
-     await fetchUsers();
-   });
-   </script>
-   
+  
+  <script setup lang="ts">
+  import { ref, reactive, onMounted } from "vue";
+  import { formatDistanceToNow } from "date-fns";
+  import { toast as ToastType } from "vue3-toastify";
+  
+  interface User {
+    id: number;
+    name: string;
+    email: string;
+    createdAt: string; // Adjust based on actual date format
+  }
+  
+  interface State {
+    users: User[];
+    user: User;
+    editMode: boolean;
+    isModalOpen: boolean;
+    userId: number | null;
+    isLoading: boolean;
+  }
+  
+  const state = reactive<State>({
+    users: [],
+    user: {
+      id: 0, // Default ID, adjust if needed
+      name: "",
+      email: "",
+      createdAt: "", // This might be irrelevant if you're not using it here
+    },
+    editMode: false,
+    isModalOpen: false,
+    userId: null,
+    isLoading: true,
+  });
+  
+  const validationErrors = reactive({
+    name: "",
+    email: "",
+  });
+
+  const getToast = (): typeof ToastType => useNuxtApp().$toast as typeof ToastType;
+
+  const toast = getToast();
+  
+  const apiError = ref<string>("");
+  
+  const fetchUsers = async () => {
+    state.isLoading = true;
+    try {
+      const response = await fetch("/api/users");
+      if (!response.ok) throw new Error("Network response was not ok");
+      state.users = await response.json();
+    } catch (error: any) {
+        toast.error("Fail to fetch users", error);
+    } finally {
+      state.isLoading = false;
+    }
+  };
+  
+  const validateUser = (): boolean => {
+    let isValid = true;
+    validationErrors.name = "";
+    validationErrors.email = "";
+  
+    // Validate name length
+    if (state.user.name.length < 3 || state.user.name.length > 100) {
+      validationErrors.name = "Name must be between 3 and 50 characters.";
+      isValid = false;
+    }
+  
+    // Validate email format
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(state.user.email)) {
+      validationErrors.email = "Please enter a valid email address.";
+      isValid = false;
+    }
+  
+    return isValid;
+  };
+  
+  const openModal = () => {
+    state.user = { id: 0, name: "", email: "", createdAt: "" }; 
+    state.editMode = false;
+    state.isModalOpen = true;
+    apiError.value = ""; 
+  };
+  
+  const closeModal = () => {
+    state.isModalOpen = false;
+    validationErrors.name = "";
+    validationErrors.email = "";
+    apiError.value = ""; 
+  };
+  
+  const formatCreatedAt = (dateString: string): string => {
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  };
+  
+  const createUser = async () => {
+    if (!validateUser()) return; 
+  
+    try {
+      await $fetch("/api/users", {
+        method: "POST",
+        body: { name: state.user.name, email: state.user.email },
+      });
+      closeModal();
+      toast.success("User added to list successfully");
+      await fetchUsers();
+    } catch (error: any) {
+      apiError.value = error.message || "An error occurred while creating the user.";
+    }
+  };
+  
+  const editUser = (selectedUser: User) => {
+    state.user = { ...selectedUser }; // Spread the selected user data
+    state.userId = selectedUser.id;
+    state.editMode = true;
+    state.isModalOpen = true;
+    apiError.value = ""; // Reset API error
+  };
+  
+  const updateUser = async () => {
+    if (!validateUser()) return; // Perform validation before sending
+  
+    try {
+      await $fetch(`/api/users/${state.userId}`, {
+        method: "PUT",
+        body: { name: state.user.name, email: state.user.email },
+      });
+      closeModal();
+      toast.success("User updated successfully");
+      await fetchUsers();
+    } catch (error: any) {
+      apiError.value = error.message || "An error occurred while updating the user.";
+    }
+  };
+  
+  const deleteUser = async (id: number) => {
+    try {
+      await $fetch(`/api/users/${id}`, { method: "DELETE" });
+      toast.success("User deleted successfully");
+      await fetchUsers();
+    } catch (error: any) {
+      apiError.value = error.message || "An error occurred while deleting the user.";
+    }
+  };
+  
+  onMounted(async () => {
+    await fetchUsers();
+  });
+  </script>
+  
