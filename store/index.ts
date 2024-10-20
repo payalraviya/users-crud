@@ -1,4 +1,4 @@
-// store/index.ts
+
 // @ts-ignore
 import { createStore, ActionContext } from 'vuex';
 import { formatDistanceToNow } from "date-fns";
@@ -48,12 +48,11 @@ export const store = createStore<State>({
             state.validationErrors.email = email;
         },
         ADD_USER(state: State, user: User) {
-            state.users.push(user); // Add new user to the users array
+            state.users.push(user); 
         },
         UPDATE_USER(state: State, updatedUser: User) {
             const index = state.users.findIndex(user => user.id === updatedUser.id);
             if (index !== -1) {
-                // Update the existing user in the state
                 state.users[index] = updatedUser;
             }
         },
@@ -75,14 +74,14 @@ export const store = createStore<State>({
         async createUser({ commit, dispatch, state }: ActionContext<State, State>, user: User) {
 
             const isValid = validateUser(state);
-            if (!isValid) return;  // Stop if validation fails
+            if (!isValid) return;  
 
             try {
                 const response: User = await $fetch('/api/users', {
                     method: 'POST',
                     body: user,
                 });
-                commit('ADD_USER', response); // Commit mutation to add user to state
+                commit('ADD_USER', response); 
                 dispatch('closeModal');
                 (useNuxtApp().$toast as { success: (msg: string) => void }).success('User created successfully');
             } catch (error) {
@@ -94,14 +93,14 @@ export const store = createStore<State>({
         async updateUser({ commit, dispatch, state }: ActionContext<State, State>, user: User) {
 
             const isValid = validateUser(state);
-            if (!isValid) return;  // Stop if validation fails
+            if (!isValid) return;  
 
             try {
                 const response: User = await $fetch(`/api/users/${user.id}`, {
                     method: 'PUT',
                     body: user,
                 });
-                commit('UPDATE_USER', response); // Commit mutation to update user in state
+                commit('UPDATE_USER', response); 
                 dispatch('closeModal');
                 (useNuxtApp().$toast as { success: (msg: string) => void }).success('User updated successfully');
             } catch (error) {
