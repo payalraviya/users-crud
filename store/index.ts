@@ -102,7 +102,7 @@ export const store = createStore<State>({
                 commit('SET_AUTHENTICATED', true);
                 commit('SET_TOKEN', response.token);
         
-                router.push('/');
+                // router.push('/');
         
                 commit('SET_VALIDATION_ERRORS', { name: '', email: '' });
         

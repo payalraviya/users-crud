@@ -63,11 +63,13 @@ const store = useStore();
 const email = ref("");
 const name = ref("");
 const apiError = ref("");
+const router = useRouter();
 const validationErrors = computed(() => store.getters.getValidationErrors);
 
 const register = async () => {
   try {
     await store.dispatch("register", { email: email.value, name: name.value });
+    window.location.href = '/';
   } catch (error) {
     apiError.value = "Register failed. Please check your credentials.";
   }
