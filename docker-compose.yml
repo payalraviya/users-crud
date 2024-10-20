@@ -14,6 +14,23 @@ services:
     networks:
       - my_network
 
+  nuxt:
+    image: node:18
+    container_name: nuxt_app
+    working_dir: /app
+    command: "npm run dev"  # if you want to start this in production then replace this with npm run build and npm run start
+    volumes:
+      - .:/app 
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://myuser:mypassword@postgres:5432/mydatabase
+    depends_on:
+      - postgres
+    networks:
+      - my_network
+
 volumes:
   postgres_data:
 
