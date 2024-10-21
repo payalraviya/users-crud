@@ -24,7 +24,12 @@ npm run dev
 
 - run with docker
 ```
-docker compose up
+docker compose up --build
+```
+
+- run migrations
+```
+npx prisma migrate deploy
 ```
 
 - I am attaching video of task here
