@@ -156,7 +156,7 @@ export const store = createStore<State>({
                     method: 'POST',
                     body: user,
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`, // Include token in request
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
                     },
                 });
                 commit('ADD_USER', response);
