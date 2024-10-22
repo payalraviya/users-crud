@@ -13,17 +13,9 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const userId = parseInt(id, 10);
-  if (isNaN(userId)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "User ID must be a valid number.",
-    });
-  }
-
   try {
     const deletedUser = await prisma.user.delete({
-      where: { id: userId },
+      where: { id: id },
     });
 
     return deletedUser;

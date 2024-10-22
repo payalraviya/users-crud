@@ -28,17 +28,9 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const userId = parseInt(id, 10);
-  if (isNaN(userId)) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "User ID must be a valid number.",
-    });
-  }
-
   try {
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
+      where: { id: id },
       data: {
         name: body.name,
         email: body.email,

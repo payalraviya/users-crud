@@ -199,7 +199,7 @@ const createUser = () => {
 const updateUser = () => {
   store.dispatch("updateUser", user.value);
 };
-const deleteUser = (id: number) => store.dispatch("deleteUser", id);
+const deleteUser = (id: string) => store.dispatch("deleteUser", id);
 const openModal = () => store.dispatch("openModal");
 const closeModal = () => store.dispatch("closeModal");
 const editUser = (user: any) => store.dispatch("editUser", user);

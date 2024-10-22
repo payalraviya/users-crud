@@ -1,5 +1,6 @@
 import prisma from '../../../prisma/prisma';
 import authMiddleware from '../../middleware/auth';
+import { v4 as uuidv4 } from 'uuid'; 
 
 export default defineEventHandler(async (event) => {
   await authMiddleware(event);  // Check auth
@@ -23,6 +24,7 @@ export default defineEventHandler(async (event) => {
   try {
     const newUser = await prisma.user.create({
       data: {
+        id: uuidv4(),
         name: body.name,
         email: body.email,
       },

@@ -2,6 +2,7 @@
 import prisma from '../../../prisma/prisma';
 import jwt from 'jsonwebtoken';
 import { createError } from 'h3'; 
+import { v4 as uuidv4 } from 'uuid'; 
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
@@ -33,6 +34,7 @@ export default defineEventHandler(async (event) => {
 
   const newUser = await prisma.user.create({
     data: {
+      id: uuidv4(),
       email: body.email,
       name: body.name,
     },

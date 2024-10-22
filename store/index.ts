@@ -8,7 +8,7 @@ export const store = createStore<State>({
     state: {
         users: [],
         user: {
-            id: 0,
+            id: '',
             name: '',
             email: '',
             createdAt: ''
@@ -187,7 +187,7 @@ export const store = createStore<State>({
                 throw error;
             }
         },
-        async deleteUser({ dispatch, commit, state }: ActionContext<State, State>, id: number) {
+        async deleteUser({ dispatch, commit, state }: ActionContext<State, State>, id: string) {
             try {
                 await fetch(`/api/users/${id}`, {
                     method: 'DELETE',
@@ -203,7 +203,7 @@ export const store = createStore<State>({
             }
         },
         openModal({ commit }: ActionContext<State, State>) {
-            commit('SET_USER', { id: 0, name: '', email: '', createdAt: '' });
+            commit('SET_USER', { id: '', name: '', email: '', createdAt: '' });
             commit('SET_EDIT_MODE', false);
             commit('SET_MODAL_OPEN', true);
             commit('SET_API_ERROR', '');
